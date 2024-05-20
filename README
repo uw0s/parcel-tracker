@@ -1,0 +1,27 @@
+# parcel-tracker
+# CLI for parcel tracking
+
+# Installation requirements
+# Python 3.8+
+
+# Installation
+pip install https://api.github.com/repos/uw0s/parcel-tracker/tarball/main#subdirectory=python
+
+# Usage
+parcel-tracker 0123456789ABCDEF carrier_name
+
+# Development requirements
+# POSIX Shell & Utilities
+# Git
+# Docker
+
+# Download
+git clone git@github.com:uw0s/parcel-tracker ~/github.com/uw0s/parcel-tracker
+
+# Development
+cd ~/github.com/uw0s/parcel-tracker/
+cd python/ && make clean check all && cd ..
+
+# Staging
+cd ~/github.com/uw0s/parcel-tracker/
+cd python/ && make STAGING=1
