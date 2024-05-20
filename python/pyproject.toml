@@ -2,7 +2,7 @@
 dependencies = [
   "beautifulsoup4==4.12.3",
   "fire==0.6.0",
-  "requests==2.31.0"
+  "requests==2.32.0"
 ]
 name = "parcel-tracker"
 version = "0.0.0"
