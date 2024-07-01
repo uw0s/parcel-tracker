@@ -234,7 +234,7 @@ class TestTracking(unittest.TestCase):
     def test_eltac(self: TestTracking) -> None:
         tracking_info = track_eltac("WI640776981GR")
         correct_hash = (
-            "174ba987ec21bae2d2302737820e1df3c6808415c98209024d8ca63379818bd7"
+            "d0c8d0a9f385e87eadad3ff57809525c8af38bbaeb5acc1ea28b205553697d16"
         )
         if next(iter(tracking_info)) != correct_hash:
             raise AssertionError
@@ -248,9 +248,9 @@ class TestTracking(unittest.TestCase):
             raise AssertionError
 
     def test_geniki(self: TestTracking) -> None:
-        tracking_info = track_geniki("4805972172")
+        tracking_info = track_geniki("4836166580")
         correct_hash = (
-            "5143d3afd42be9cfb378720f9e2b854806f65593c866676d61d41e414861b3f9"
+            "f1d24135dea54816edf954d05d9c39668f5087f67672452ceac38f8d32763fb0"
         )
         if next(iter(tracking_info)) != correct_hash:
             raise AssertionError
@@ -264,9 +264,9 @@ class TestTracking(unittest.TestCase):
             raise AssertionError
 
     def test_speedex(self: TestTracking) -> None:
-        tracking_info = track_speedex("700030435315")
+        tracking_info = track_speedex("700033415343")
         correct_hash = (
-            "40200f3d4ca71c83f619b5d7ab248633d7eeef371c61bd3c3357271435b60740"
+            "9565b1ecde3668df910430c3c2f1213103707d7725beb2f390badbe4cc826055"
         )
         if next(iter(tracking_info)) != correct_hash:
             raise AssertionError
