@@ -15,10 +15,7 @@ def generate_unique_id(*args: str) -> str:
 
 def track_easymail(tracking_number: str) -> dict[str, dict[str, str]]:
     url = f"https://trackntrace.easymail.gr/{tracking_number}"
-    response = requests.get(
-        url,
-        timeout=5,
-    )
+    response = requests.get(url, timeout=5)
     html_content = response.text
     soup = BeautifulSoup(html_content, "html.parser")
     table_element = soup.find("div", class_="col mobiRemoveMargin")
@@ -40,13 +37,9 @@ def track_easymail(tracking_number: str) -> dict[str, dict[str, str]]:
 
 
 def track_elta(tracking_number: str) -> dict[str, dict[str, str]]:
-    session = requests.Session()
     url = "https://www.elta.gr/trackApi"
     payload = {"code[]": tracking_number, "in_lang": "1"}
-    headers = {
-        "X-Requested-With": "XMLHttpRequest",
-    }
-    response = session.post(url, data=payload, headers=headers)
+    response = requests.post(url, data=payload, timeout=5)
     response_data = response.json()
     tracking_data = response_data[0]["response"]["out_status"]
     tracking_info = {}
@@ -66,29 +59,9 @@ def track_elta(tracking_number: str) -> dict[str, dict[str, str]]:
 
 
 def track_eltac(tracking_number: str) -> dict[str, dict[str, str]]:
-    session = requests.Session()
     url = "https://www.elta-courier.gr/track.php"
     payload = {"number": tracking_number}
-    headers = {
-        "User-Agent": (
-            "Mozilla/5.0 (X11; Linux x86_64; rv:126.0) Gecko/20100101 Firefox/126.0"
-        ),
-        "Accept": "application/json, text/javascript, */*; q=0.01",
-        "Accept-Language": "en-US,en;q=0.5",
-        "Accept-Encoding": "gzip, deflate, br, zstd",
-        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-        "X-Requested-With": "XMLHttpRequest",
-        "Origin": "https://www.elta-courier.gr",
-        "DNT": "1",
-        "Sec-GPC": "1",
-        "Connection": "keep-alive",
-        "Referer": f"https://www.elta-courier.gr/search?br={tracking_number}",
-        "Sec-Fetch-Dest": "empty",
-        "Sec-Fetch-Mode": "cors",
-        "Sec-Fetch-Site": "same-origin",
-        "Priority": "u=1",
-    }
-    response = session.post(url, data=payload, headers=headers)
+    response = requests.post(url, data=payload, timeout=5)
     response_data = json.loads(response.content.decode("utf-8-sig"))
     tracking_data = response_data["result"][tracking_number]["result"]
     tracking_info = {}
@@ -109,10 +82,7 @@ def track_eltac(tracking_number: str) -> dict[str, dict[str, str]]:
 
 def track_eshop(tracking_number: str) -> dict[str, dict[str, str]]:
     url = f"https://www.e-shop.gr/status.phtml?id={tracking_number}"
-    response = requests.get(
-        url,
-        timeout=5,
-    )
+    response = requests.get(url, timeout=5)
     html_content = response.text
     soup = BeautifulSoup(html_content, "html.parser")
     td_element = soup.find(
@@ -142,10 +112,7 @@ def track_eshop(tracking_number: str) -> dict[str, dict[str, str]]:
 
 def track_geniki(tracking_number: str) -> dict[str, dict[str, str]]:
     url = f"https://www.taxydromiki.com/en/track/{tracking_number}"
-    response = requests.get(
-        url,
-        timeout=5,
-    )
+    response = requests.get(url, timeout=5)
     html_content = response.text
     soup = BeautifulSoup(html_content, "html.parser")
     tracking_data = soup.find_all("div", class_="tracking-checkpoint")
