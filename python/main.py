@@ -33,6 +33,25 @@ def track_boxnow(tracking_number: str) -> dict[str, dict[str, str]]:
     return tracking_info
 
 
+def track_cainiao(tracking_number: str) -> dict[str, dict[str, str]]:
+    url = f"https://global.cainiao.com/global/detail.json?mailNos={tracking_number}"
+    response = requests.get(url, timeout=5)
+    response_data = response.json()
+    tracking_data = response_data["module"][0]["detailList"]
+    tracking_info = {}
+    for step in tracking_data:
+        time_message = step["timeStr"]
+        location_message = step["standerdDesc"]
+        tracking_message = step["desc"]
+        unique_id = generate_unique_id(time_message, tracking_message)
+        tracking_info[unique_id] = {
+            "time": time_message,
+            "message": tracking_message,
+            "location": location_message,
+        }
+    return tracking_info
+
+
 def track_easymail(tracking_number: str) -> dict[str, dict[str, str]]:
     url = f"https://trackntrace.easymail.gr/{tracking_number}"
     response = requests.get(url, timeout=5)
@@ -210,6 +229,14 @@ class TestTracking(unittest.TestCase):
         if next(iter(tracking_info)) != correct_hash:
             raise AssertionError
 
+    def test_cainiao(self: TestTracking) -> None:
+        tracking_info = track_cainiao("7605228735")
+        correct_hash = (
+            "75833d19fcadaf33ae5584efcf80d1846c178fc8633e672c78fcff9743c80968"
+        )
+        if next(iter(tracking_info)) != correct_hash:
+            raise AssertionError
+
     def test_easymail(self: TestTracking) -> None:
         tracking_info = track_easymail("013638451354")
         correct_hash = (
@@ -270,6 +297,7 @@ class TestTracking(unittest.TestCase):
 def parcel_tracker(tracking_number: str, shipping: str) -> dict[str, dict[str, str]]:
     tracking_functions = {
         "boxnow": track_boxnow,
+        "cainiao": track_cainiao,
         "easymail": track_easymail,
         "elta": track_elta,
         "eltac": track_eltac,
