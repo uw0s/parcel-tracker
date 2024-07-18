@@ -13,6 +13,26 @@ def generate_unique_id(*args: str) -> str:
     return hashlib.sha256(combined_string.encode("utf-8")).hexdigest()
 
 
+def track_boxnow(tracking_number: str) -> dict[str, dict[str, str]]:
+    url = "https://api-production.boxnow.gr/api/v1/parcels:track"
+    json_data = {"parcelId": tracking_number}
+    response = requests.post(url, json=json_data, timeout=5)
+    response_data = response.json()
+    tracking_data = response_data["data"][0]["events"]
+    tracking_info = {}
+    for step in reversed(tracking_data):
+        time_message = step["createTime"]
+        location_message = step.get("locationDisplayName", "N/A")
+        tracking_message = step["type"]
+        unique_id = generate_unique_id(time_message, tracking_message)
+        tracking_info[unique_id] = {
+            "time": time_message,
+            "message": tracking_message,
+            "location": location_message,
+        }
+    return tracking_info
+
+
 def track_easymail(tracking_number: str) -> dict[str, dict[str, str]]:
     url = f"https://trackntrace.easymail.gr/{tracking_number}"
     response = requests.get(url, timeout=5)
@@ -182,6 +202,14 @@ def track_speedex(tracking_number: str) -> dict[str, dict[str, str]]:
 
 
 class TestTracking(unittest.TestCase):
+    def test_boxnow(self: TestTracking) -> None:
+        tracking_info = track_boxnow("2945812081")
+        correct_hash = (
+            "5dfa5c690468c03e499e097f7f60e1b042d742024c218d1fd87ae8fba75e62f8"
+        )
+        if next(iter(tracking_info)) != correct_hash:
+            raise AssertionError
+
     def test_easymail(self: TestTracking) -> None:
         tracking_info = track_easymail("013638451354")
         correct_hash = (
@@ -241,6 +269,7 @@ class TestTracking(unittest.TestCase):
 
 def parcel_tracker(tracking_number: str, shipping: str) -> dict[str, dict[str, str]]:
     tracking_functions = {
+        "boxnow": track_boxnow,
         "easymail": track_easymail,
         "elta": track_elta,
         "eltac": track_eltac,
