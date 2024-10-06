@@ -314,9 +314,9 @@ def track_sunyou(tracking_number: str) -> dict[str, dict[str, str]]:
 
 class TestTracking(unittest.TestCase):
     def test_boxnow(self: TestTracking) -> None:
-        tracking_info = track_boxnow("2945812081")
+        tracking_info = track_boxnow("9232100105")
         correct_hash = (
-            "5dfa5c690468c03e499e097f7f60e1b042d742024c218d1fd87ae8fba75e62f8"
+            "4ed9fdf53544b92c720366646e8f5bd061c88c52dc5e3ad21fa223a6d4a6b4fb"
         )
         if next(iter(tracking_info)) != correct_hash:
             raise AssertionError
@@ -340,7 +340,7 @@ class TestTracking(unittest.TestCase):
     def test_easymail(self: TestTracking) -> None:
         tracking_info = track_easymail("013638451354")
         correct_hash = (
-            "adf9291c0e3e783ff093ca8eae6cf4ed97a14c018c1a386b5552abb9156c8d4a"
+            "89d00851062b1066ca4347084c87cac4c375d6b915deea25c1caf4964b388ef2"
         )
         if next(iter(tracking_info)) != correct_hash:
             raise AssertionError
@@ -370,9 +370,9 @@ class TestTracking(unittest.TestCase):
             raise AssertionError
 
     def test_geniki(self: TestTracking) -> None:
-        tracking_info = track_geniki("4836166580")
+        tracking_info = track_geniki("3951159041")
         correct_hash = (
-            "f1d24135dea54816edf954d05d9c39668f5087f67672452ceac38f8d32763fb0"
+            "4efb2456419450175f91bf7a64d06057603819de869bd73617da3332cecaa676"
         )
         if next(iter(tracking_info)) != correct_hash:
             raise AssertionError
