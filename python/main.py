@@ -291,7 +291,7 @@ def track_speedex(tracking_number: str) -> dict[str, dict[str, str]]:
 
 def track_sunyou(tracking_number: str) -> dict[str, dict[str, str]]:
     url = (
-        f"https://sypost.net/queryTrack?trackNumber={tracking_number}&toLanguage=en_US"
+        f"https://www.sypost.net/queryTrack?trackNumber={tracking_number}&toLanguage=en_US"
     )
     response = requests.get(url, timeout=5)
     jsonp_content = response.text
