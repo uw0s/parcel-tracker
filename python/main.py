@@ -183,6 +183,31 @@ def track_geniki(tracking_number: str) -> dict[str, dict[str, str]]:
     return tracking_info
 
 
+def track_plaisio(tracking_number: str) -> dict[str, dict[str, str]]:
+    url = "https://www.plaisio.gr/mercury/plaisio/ordertracking/getordertracking"
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (X11; Linux x86_64; rv:131.0) Gecko/20100101 Firefox/131.0"
+        ),
+    }
+    json_data = {
+        "TrackingNumber": tracking_number,
+    }
+    response = requests.post(url, headers=headers, json=json_data, timeout=5)
+    response_data = response.json()
+    tracking_data = response_data["orderHistory"]
+    tracking_info = {}
+    for step in reversed(tracking_data):
+        time_message = step["transactionDate"]
+        tracking_message = step["statusDescription"]
+        unique_id = generate_unique_id(time_message, tracking_message)
+        tracking_info[unique_id] = {
+            "time": time_message,
+            "message": tracking_message,
+        }
+    return tracking_info
+
+
 def track_skroutz(tracking_number: str) -> dict[str, dict[str, str]]:
     url = f"https://api.sendx.gr/user/hp/{tracking_number}"
     response = requests.get(url, timeout=5)
@@ -302,6 +327,14 @@ class TestTracking(unittest.TestCase):
         if next(iter(tracking_info)) != correct_hash:
             raise AssertionError
 
+    def test_plaisio(self: TestTracking) -> None:
+        tracking_info = track_plaisio("5125957")
+        correct_hash = (
+            "779c9b4b1ee8f7d086f2c7f1005467a6f483afd1af64a2b1e88bd845f3370079"
+        )
+        if next(iter(tracking_info)) != correct_hash:
+            raise AssertionError
+
     def test_skroutz(self: TestTracking) -> None:
         tracking_info = track_skroutz("JLD6ZN7P8YD4W")
         correct_hash = (
@@ -336,6 +369,7 @@ def parcel_tracker(tracking_number: str, shipping: str) -> dict[str, dict[str, s
         "eltac": track_eltac,
         "eshop": track_eshop,
         "geniki": track_geniki,
+        "plaisio": track_plaisio,
         "skroutz": track_skroutz,
         "speedex": track_speedex,
         "sunyou": track_sunyou,
