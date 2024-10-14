@@ -14,6 +14,32 @@ def generate_unique_id(*args: str) -> str:
     return hashlib.sha256(combined_string.encode("utf-8")).hexdigest()
 
 
+def track_acs(tracking_number: str) -> dict[str, dict[str, str]]:
+    base_url = "https://www.acscourier.net/"
+    base_response = requests.get(base_url, timeout=5)
+    soup = BeautifulSoup(base_response.text, "html.parser")
+    app_root = soup.find(id="app-root")
+    public_token = app_root.get("publictoken")
+    url = f"https://api.acscourier.net/api/parcels/search/{tracking_number}"
+    headers = {
+        "X-Encrypted-Key": public_token,
+        "Origin": base_url,
+    }
+    response = requests.get(url, headers=headers, timeout=5)
+    response_data = response.json()
+    tracking_data = response_data["items"][0]["statusHistory"]
+    tracking_info = {}
+    for step in reversed(tracking_data):
+        time_message = step["controlPointDate"]
+        tracking_message = step["controlPoint"]
+        unique_id = generate_unique_id(time_message, tracking_message)
+        tracking_info[unique_id] = {
+            "time": time_message,
+            "message": tracking_message,
+        }
+    return tracking_info
+
+
 def track_boxnow(tracking_number: str) -> dict[str, dict[str, str]]:
     url = "https://api-production.boxnow.gr/api/v1/parcels:track"
     json_data = {"parcelId": tracking_number}
@@ -271,6 +297,14 @@ def track_sunyou(tracking_number: str) -> dict[str, dict[str, str]]:
 
 
 class TestTracking(unittest.TestCase):
+    def test_acs(self: TestTracking) -> None:
+        tracking_info = track_acs("3482598254")
+        correct_hash = (
+            "80636753554fcfe07f9bf943f61f93035d63514c0213d13d8a39740eb4ae75da"
+        )
+        if next(iter(tracking_info)) != correct_hash:
+            raise AssertionError
+
     def test_boxnow(self: TestTracking) -> None:
         tracking_info = track_boxnow("9232100105")
         correct_hash = (
@@ -362,6 +396,7 @@ class TestTracking(unittest.TestCase):
 
 def parcel_tracker(tracking_number: str, shipping: str) -> dict[str, dict[str, str]]:
     tracking_functions = {
+        "acs": track_acs,
         "boxnow": track_boxnow,
         "cainiao": track_cainiao,
         "easymail": track_easymail,
