@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime
 import hashlib
 import json
 import unittest
@@ -11,48 +12,6 @@ from bs4 import BeautifulSoup
 def generate_unique_id(*args: str) -> str:
     combined_string = " ".join(args)
     return hashlib.sha256(combined_string.encode("utf-8")).hexdigest()
-
-
-def unix_time_to_human(unix_time: int) -> str:
-    minutes = unix_time // 60
-    seconds = unix_time % 60
-    hours = minutes // 60
-    minutes = minutes % 60
-    days = hours // 24
-    hours = hours % 24
-    year = 1970
-    days_in_year = 365
-    days_in_leap_year = 366
-    while days >= days_in_year:
-        if year % 4 == 0 and (year % 100 != 0 or year % 400 == 0):
-            if days >= days_in_leap_year:
-                days -= days_in_leap_year
-            else:
-                break
-        else:
-            days -= days_in_year
-        year += 1
-    month_days = [
-        31,
-        28 if year % 4 != 0 or (year % 100 == 0 and year % 400 != 0) else 29,
-        31,
-        30,
-        31,
-        30,
-        31,
-        31,
-        30,
-        31,
-        30,
-        31,
-    ]
-    month = 0
-    while days >= month_days[month]:
-        days -= month_days[month]
-        month += 1
-    month += 1
-    day = days + 1
-    return f"{year:04d}-{month:02d}-{day:02d} {hours:02d}:{minutes:02d}:{seconds:02d}"
 
 
 def track_boxnow(tracking_number: str) -> dict[str, dict[str, str]]:
@@ -263,9 +222,7 @@ def track_speedex(tracking_number: str) -> dict[str, dict[str, str]]:
 
 
 def track_sunyou(tracking_number: str) -> dict[str, dict[str, str]]:
-    url = (
-        f"https://www.sypost.net/queryTrack?trackNumber={tracking_number}&toLanguage=en_US"
-    )
+    url = f"https://www.sypost.net/queryTrack?trackNumber={tracking_number}&toLanguage=en_US"
     response = requests.get(url, timeout=5)
     jsonp_content = response.text
     start_index = jsonp_content.index("(") + 1
@@ -276,7 +233,10 @@ def track_sunyou(tracking_number: str) -> dict[str, dict[str, str]]:
     tracking_info = {}
     for step in tracking_data:
         tracking_message = step["content"]
-        time_message = unix_time_to_human(step["createTime"] // 1000)
+        time_message = datetime.datetime.fromtimestamp(
+            step["createTime"] // 1000,
+            tz=datetime.UTC,
+        ).strftime("%Y-%m-%d %H:%M:%S")
         unique_id = generate_unique_id(time_message, tracking_message)
         tracking_info[unique_id] = {
             "time": time_message,
