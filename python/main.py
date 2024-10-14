@@ -94,33 +94,6 @@ def track_cainiao(tracking_number: str) -> dict[str, dict[str, str]]:
     return tracking_info
 
 
-def track_ccenter(tracking_number: str) -> dict[str, dict[str, str]]:
-    url = f"https://courier.gr/track/result?tracknr={tracking_number}"
-    response = requests.get(url, timeout=5)
-    html_content = response.text
-    soup = BeautifulSoup(html_content, "html.parser")
-    tracking_data = soup.find_all("div", class_="tr")
-    tracking_info = {}
-    for step in tracking_data:
-        date_element = step.find("div", class_="td date")
-        time_element = step.find("div", class_="td time")
-        action_element = step.find("div", class_="td action")
-        area_element = step.find("div", class_="td area")
-        if date_element and time_element and action_element and area_element:
-            date_message = date_element.text.strip()
-            time_message = time_element.text.strip()
-            tracking_message = action_element.text.strip()
-            location_message = area_element.text.strip()
-            full_time_message = f"{date_message} {time_message}"
-            unique_id = generate_unique_id(full_time_message, tracking_message)
-            tracking_info[unique_id] = {
-                "time": full_time_message,
-                "message": tracking_message,
-                "location": location_message,
-            }
-    return tracking_info
-
-
 def track_easymail(tracking_number: str) -> dict[str, dict[str, str]]:
     url = f"https://trackntrace.easymail.gr/{tracking_number}"
     response = requests.get(url, timeout=5)
@@ -329,14 +302,6 @@ class TestTracking(unittest.TestCase):
         if next(iter(tracking_info)) != correct_hash:
             raise AssertionError
 
-    def test_ccenter(self: TestTracking) -> None:
-        tracking_info = track_ccenter("013670092260")
-        correct_hash = (
-            "7f8311302433ad1d47dfce262343911fe6548163892a6c8a459c2e0744d2db90"
-        )
-        if next(iter(tracking_info)) != correct_hash:
-            raise AssertionError
-
     def test_easymail(self: TestTracking) -> None:
         tracking_info = track_easymail("013638451354")
         correct_hash = (
@@ -406,7 +371,6 @@ def parcel_tracker(tracking_number: str, shipping: str) -> dict[str, dict[str, s
     tracking_functions = {
         "boxnow": track_boxnow,
         "cainiao": track_cainiao,
-        "ccenter": track_ccenter,
         "easymail": track_easymail,
         "elta": track_elta,
         "eltac": track_eltac,
