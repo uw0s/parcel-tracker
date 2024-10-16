@@ -308,9 +308,9 @@ class TestTracking(unittest.TestCase):
             raise AssertionError
 
     def test_elta(self: TestTracking) -> None:
-        tracking_info = track_elta("UA108460748HU")
+        tracking_info = track_elta("WI640776981GR")
         correct_hash = (
-            "6c179f21e6f62b629055d8ab40f454ed02e48b68563913473b857d3638e23b28"
+            "695cb143667f5432d74f592b875269d821690f57161c7da4185e66dec13dda11"
         )
         if next(iter(tracking_info)) != correct_hash:
             raise AssertionError
@@ -318,7 +318,7 @@ class TestTracking(unittest.TestCase):
     def test_eltac(self: TestTracking) -> None:
         tracking_info = track_eltac("WI640776981GR")
         correct_hash = (
-            "d0c8d0a9f385e87eadad3ff57809525c8af38bbaeb5acc1ea28b205553697d16"
+            "174ba987ec21bae2d2302737820e1df3c6808415c98209024d8ca63379818bd7"
         )
         if next(iter(tracking_info)) != correct_hash:
             raise AssertionError
@@ -366,7 +366,7 @@ class TestTracking(unittest.TestCase):
     def test_sunyou(self: TestTracking) -> None:
         tracking_info = track_sunyou("SYAE006809461")
         correct_hash = (
-            "6b3f9d9d245100498115f0ca3adb5a41e8eb91a0fdeb7551518764a39525446e"
+            "60060cef334d81243bb1981b9c5e02f638e490072d068762541775f0d0e5f2d9"
         )
         if next(iter(tracking_info)) != correct_hash:
             raise AssertionError
