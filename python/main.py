@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import datetime
 import hashlib
 import json
 import unittest
@@ -13,9 +12,40 @@ session = requests.Session()
 TIMEOUT = 5
 
 
+def combine_date_time(
+    tracking_data: list[dict[str, str]],
+    date_key: str,
+    time_key: str,
+) -> list[dict[str, str]]:
+    for step in tracking_data:
+        if date_key in step and time_key in step:
+            step["combined_time"] = f"{step[date_key]} {step[time_key]}"
+    return tracking_data
+
+
 def generate_unique_id(*args: str) -> str:
-    combined_string = " ".join(args)
+    combined_string = " ".join(str(arg) for arg in args)
     return hashlib.sha256(combined_string.encode("utf-8")).hexdigest()
+
+
+def parse_tracking_data(
+    tracking_data: list[dict[str, str]],
+    key_mappings: dict[str, str],
+    reverse_order: bool,  # noqa: FBT001
+) -> dict[str, dict[str, str]]:
+    tracking_info = {}
+    steps = reversed(tracking_data) if reverse_order else tracking_data
+    for step in steps:
+        time_message = step.get(key_mappings.get("time", ""), "N/A")
+        tracking_message = step.get(key_mappings.get("message", ""), "N/A")
+        location_message = step.get(key_mappings.get("location", ""), "N/A")
+        unique_id = generate_unique_id(time_message, tracking_message)
+        tracking_info[unique_id] = {
+            "time": time_message,
+            "message": tracking_message,
+            "location": location_message,
+        }
+    return tracking_info
 
 
 def track_acs(tracking_number: str) -> dict[str, dict[str, str]]:
@@ -30,17 +60,35 @@ def track_acs(tracking_number: str) -> dict[str, dict[str, str]]:
         "Origin": base_url,
     }
     response = session.get(url, headers=headers, timeout=TIMEOUT)
+    tracking_data = response.json()["items"][0]["statusHistory"]
+    return parse_tracking_data(
+        tracking_data,
+        {"time": "controlPointDate", "message": "controlPoint"},
+        reverse_order=True,
+    )
 
 
 def track_boxnow(tracking_number: str) -> dict[str, dict[str, str]]:
     url = "https://api-production.boxnow.gr/api/v1/parcels:track"
     json_data = {"parcelId": tracking_number}
     response = session.post(url, json=json_data, timeout=TIMEOUT)
+    tracking_data = response.json()["data"][0]["events"]
+    return parse_tracking_data(
+        tracking_data,
+        {"time": "createTime", "message": "type", "location": "locationDisplayName"},
+        reverse_order=True,
+    )
 
 
 def track_cainiao(tracking_number: str) -> dict[str, dict[str, str]]:
     url = f"https://global.cainiao.com/global/detail.json?mailNos={tracking_number}"
     response = session.get(url, timeout=TIMEOUT)
+    tracking_data = response.json()["module"][0]["detailList"]
+    return parse_tracking_data(
+        tracking_data,
+        {"time": "timeStr", "message": "desc", "location": "standerdDesc"},
+        reverse_order=False,
+    )
 
 
 def track_easymail(tracking_number: str) -> dict[str, dict[str, str]]:
@@ -70,6 +118,17 @@ def track_elta(tracking_number: str) -> dict[str, dict[str, str]]:
     url = "https://www.elta.gr/trackApi"
     payload = {"code[]": tracking_number, "in_lang": "1"}
     response = session.post(url, data=payload, timeout=TIMEOUT)
+    tracking_data = response.json()[0]["response"]["out_status"]
+    tracking_data = combine_date_time(tracking_data, "out_date", "out_time")
+    return parse_tracking_data(
+        tracking_data,
+        {
+            "time": "combined_time",
+            "message": "out_status_name",
+            "location": "out_station",
+        },
+        reverse_order=False,
+    )
 
 
 def track_eltac(tracking_number: str) -> dict[str, dict[str, str]]:
@@ -78,20 +137,12 @@ def track_eltac(tracking_number: str) -> dict[str, dict[str, str]]:
     response = session.post(url, data=payload, timeout=TIMEOUT)
     response_data = json.loads(response.content.decode("utf-8-sig"))
     tracking_data = response_data["result"][tracking_number]["result"]
-    tracking_info = {}
-    for step in reversed(tracking_data):
-        date = step["date"]
-        time = step["time"]
-        time_message = f"{date} {time}"
-        tracking_message = step["status"]
-        location_message = step["place"]
-        unique_id = generate_unique_id(time_message, tracking_message)
-        tracking_info[unique_id] = {
-            "time": time_message,
-            "message": tracking_message,
-            "location": location_message,
-        }
-    return tracking_info
+    tracking_data = combine_date_time(tracking_data, "date", "time")
+    return parse_tracking_data(
+        tracking_data,
+        {"time": "combined_time", "message": "status", "location": "place"},
+        reverse_order=False,
+    )
 
 
 def track_eshop(tracking_number: str) -> dict[str, dict[str, str]]:
@@ -168,11 +219,23 @@ def track_plaisio(tracking_number: str) -> dict[str, dict[str, str]]:
         "TrackingNumber": tracking_number,
     }
     response = session.post(url, headers=headers, json=json_data, timeout=TIMEOUT)
+    tracking_data = response.json()["orderHistory"]
+    return parse_tracking_data(
+        tracking_data,
+        {"time": "transactionDate", "message": "statusDescription"},
+        reverse_order=True,
+    )
 
 
 def track_skroutz(tracking_number: str) -> dict[str, dict[str, str]]:
     url = f"https://api.sendx.gr/user/hp/{tracking_number}"
     response = session.get(url, timeout=TIMEOUT)
+    tracking_data = response.json()["trackingDetails"]
+    return parse_tracking_data(
+        tracking_data,
+        {"time": "updatedAt", "message": "description"},
+        reverse_order=False,
+    )
 
 
 def track_speedex(tracking_number: str) -> dict[str, dict[str, str]]:
@@ -203,21 +266,12 @@ def track_sunyou(tracking_number: str) -> dict[str, dict[str, str]]:
     start_index = jsonp_content.index("(") + 1
     end_index = jsonp_content.rindex(")")
     json_str = jsonp_content[start_index:end_index]
-    json_data = json.loads(json_str)
-    tracking_data = json_data["data"][0]["result"]["origin"]["items"]
-    tracking_info = {}
-    for step in tracking_data:
-        tracking_message = step["content"]
-        time_message = datetime.datetime.fromtimestamp(
-            step["createTime"] // 1000,
-            tz=datetime.UTC,
-        ).strftime("%Y-%m-%d %H:%M:%S")
-        unique_id = generate_unique_id(time_message, tracking_message)
-        tracking_info[unique_id] = {
-            "time": time_message,
-            "message": tracking_message,
-        }
-    return tracking_info
+    tracking_data = json.loads(json_str)["data"][0]["result"]["origin"]["items"]
+    return parse_tracking_data(
+        tracking_data,
+        {"time": "createTime", "message": "content"},
+        reverse_order=False,
+    )
 
 
 class TestTracking(unittest.TestCase):
