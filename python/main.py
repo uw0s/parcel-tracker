@@ -8,6 +8,10 @@ import unittest
 import requests
 from bs4 import BeautifulSoup
 
+session = requests.Session()
+
+TIMEOUT = 5
+
 
 def generate_unique_id(*args: str) -> str:
     combined_string = " ".join(args)
@@ -16,7 +20,7 @@ def generate_unique_id(*args: str) -> str:
 
 def track_acs(tracking_number: str) -> dict[str, dict[str, str]]:
     base_url = "https://www.acscourier.net/"
-    base_response = requests.get(base_url, timeout=5)
+    base_response = session.get(base_url, timeout=TIMEOUT)
     soup = BeautifulSoup(base_response.text, "html.parser")
     app_root = soup.find(id="app-root")
     public_token = app_root.get("publictoken")
@@ -25,63 +29,23 @@ def track_acs(tracking_number: str) -> dict[str, dict[str, str]]:
         "X-Encrypted-Key": public_token,
         "Origin": base_url,
     }
-    response = requests.get(url, headers=headers, timeout=5)
-    response_data = response.json()
-    tracking_data = response_data["items"][0]["statusHistory"]
-    tracking_info = {}
-    for step in reversed(tracking_data):
-        time_message = step["controlPointDate"]
-        tracking_message = step["controlPoint"]
-        unique_id = generate_unique_id(time_message, tracking_message)
-        tracking_info[unique_id] = {
-            "time": time_message,
-            "message": tracking_message,
-        }
-    return tracking_info
+    response = session.get(url, headers=headers, timeout=TIMEOUT)
 
 
 def track_boxnow(tracking_number: str) -> dict[str, dict[str, str]]:
     url = "https://api-production.boxnow.gr/api/v1/parcels:track"
     json_data = {"parcelId": tracking_number}
-    response = requests.post(url, json=json_data, timeout=5)
-    response_data = response.json()
-    tracking_data = response_data["data"][0]["events"]
-    tracking_info = {}
-    for step in reversed(tracking_data):
-        time_message = step["createTime"]
-        location_message = step.get("locationDisplayName", "N/A")
-        tracking_message = step["type"]
-        unique_id = generate_unique_id(time_message, tracking_message)
-        tracking_info[unique_id] = {
-            "time": time_message,
-            "message": tracking_message,
-            "location": location_message,
-        }
-    return tracking_info
+    response = session.post(url, json=json_data, timeout=TIMEOUT)
 
 
 def track_cainiao(tracking_number: str) -> dict[str, dict[str, str]]:
     url = f"https://global.cainiao.com/global/detail.json?mailNos={tracking_number}"
-    response = requests.get(url, timeout=5)
-    response_data = response.json()
-    tracking_data = response_data["module"][0]["detailList"]
-    tracking_info = {}
-    for step in tracking_data:
-        time_message = step["timeStr"]
-        location_message = step["standerdDesc"]
-        tracking_message = step["desc"]
-        unique_id = generate_unique_id(time_message, tracking_message)
-        tracking_info[unique_id] = {
-            "time": time_message,
-            "message": tracking_message,
-            "location": location_message,
-        }
-    return tracking_info
+    response = session.get(url, timeout=TIMEOUT)
 
 
 def track_easymail(tracking_number: str) -> dict[str, dict[str, str]]:
     url = f"https://trackntrace.easymail.gr/{tracking_number}"
-    response = requests.get(url, timeout=5)
+    response = session.get(url, timeout=TIMEOUT)
     html_content = response.text
     soup = BeautifulSoup(html_content, "html.parser")
     table_element = soup.find("div", class_="col mobiRemoveMargin")
@@ -105,29 +69,13 @@ def track_easymail(tracking_number: str) -> dict[str, dict[str, str]]:
 def track_elta(tracking_number: str) -> dict[str, dict[str, str]]:
     url = "https://www.elta.gr/trackApi"
     payload = {"code[]": tracking_number, "in_lang": "1"}
-    response = requests.post(url, data=payload, timeout=5)
-    response_data = response.json()
-    tracking_data = response_data[0]["response"]["out_status"]
-    tracking_info = {}
-    for step in reversed(tracking_data):
-        date = step["out_date"]
-        time = step["out_time"]
-        time_message = f"{date} {time}"
-        location_message = step["out_station"]
-        tracking_message = step["out_status_name"]
-        unique_id = generate_unique_id(time_message, tracking_message)
-        tracking_info[unique_id] = {
-            "time": time_message,
-            "message": tracking_message,
-            "location": location_message,
-        }
-    return tracking_info
+    response = session.post(url, data=payload, timeout=TIMEOUT)
 
 
 def track_eltac(tracking_number: str) -> dict[str, dict[str, str]]:
     url = "https://www.elta-courier.gr/track.php"
     payload = {"number": tracking_number}
-    response = requests.post(url, data=payload, timeout=5)
+    response = session.post(url, data=payload, timeout=TIMEOUT)
     response_data = json.loads(response.content.decode("utf-8-sig"))
     tracking_data = response_data["result"][tracking_number]["result"]
     tracking_info = {}
@@ -148,7 +96,7 @@ def track_eltac(tracking_number: str) -> dict[str, dict[str, str]]:
 
 def track_eshop(tracking_number: str) -> dict[str, dict[str, str]]:
     url = f"https://www.e-shop.gr/status.phtml?id={tracking_number}"
-    response = requests.get(url, timeout=5)
+    response = session.get(url, timeout=TIMEOUT)
     html_content = response.text
     soup = BeautifulSoup(html_content, "html.parser")
     td_element = soup.find(
@@ -178,7 +126,7 @@ def track_eshop(tracking_number: str) -> dict[str, dict[str, str]]:
 
 def track_geniki(tracking_number: str) -> dict[str, dict[str, str]]:
     url = f"https://www.taxydromiki.com/en/track/{tracking_number}"
-    response = requests.get(url, timeout=5)
+    response = session.get(url, timeout=TIMEOUT)
     html_content = response.text
     soup = BeautifulSoup(html_content, "html.parser")
     tracking_data = soup.find_all("div", class_="tracking-checkpoint")
@@ -219,43 +167,19 @@ def track_plaisio(tracking_number: str) -> dict[str, dict[str, str]]:
     json_data = {
         "TrackingNumber": tracking_number,
     }
-    response = requests.post(url, headers=headers, json=json_data, timeout=5)
-    response_data = response.json()
-    tracking_data = response_data["orderHistory"]
-    tracking_info = {}
-    for step in reversed(tracking_data):
-        time_message = step["transactionDate"]
-        tracking_message = step["statusDescription"]
-        unique_id = generate_unique_id(time_message, tracking_message)
-        tracking_info[unique_id] = {
-            "time": time_message,
-            "message": tracking_message,
-        }
-    return tracking_info
+    response = session.post(url, headers=headers, json=json_data, timeout=TIMEOUT)
 
 
 def track_skroutz(tracking_number: str) -> dict[str, dict[str, str]]:
     url = f"https://api.sendx.gr/user/hp/{tracking_number}"
-    response = requests.get(url, timeout=5)
-    response_data = response.json()
-    tracking_data = response_data["trackingDetails"]
-    tracking_info = {}
-    for step in tracking_data:
-        time_message = step["updatedAt"]
-        tracking_message = step["description"]
-        unique_id = generate_unique_id(time_message, tracking_message)
-        tracking_info[unique_id] = {
-            "time": time_message,
-            "message": tracking_message,
-        }
-    return tracking_info
+    response = session.get(url, timeout=TIMEOUT)
 
 
 def track_speedex(tracking_number: str) -> dict[str, dict[str, str]]:
     url = (
         f"http://www.speedex.gr/speedex/NewTrackAndTrace.aspx?number={tracking_number}"
     )
-    response = requests.get(url, timeout=5)
+    response = session.get(url, timeout=TIMEOUT)
     html_content = response.text
     soup = BeautifulSoup(html_content, "html.parser")
     tracking_data = soup.find_all("div", class_="card-header")
@@ -274,7 +198,7 @@ def track_speedex(tracking_number: str) -> dict[str, dict[str, str]]:
 
 def track_sunyou(tracking_number: str) -> dict[str, dict[str, str]]:
     url = f"https://www.sypost.net/queryTrack?trackNumber={tracking_number}&toLanguage=en_US"
-    response = requests.get(url, timeout=5)
+    response = session.get(url, timeout=TIMEOUT)
     jsonp_content = response.text
     start_index = jsonp_content.index("(") + 1
     end_index = jsonp_content.rindex(")")
