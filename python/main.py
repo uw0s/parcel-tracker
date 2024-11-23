@@ -308,17 +308,17 @@ class TestTracking(unittest.TestCase):
             raise AssertionError
 
     def test_elta(self: TestTracking) -> None:
-        tracking_info = track_elta("WI640776981GR")
+        tracking_info = track_elta("LA114239535GB")
         correct_hash = (
-            "695cb143667f5432d74f592b875269d821690f57161c7da4185e66dec13dda11"
+            "93962002d8413f7e9895b791252a84556beb13f2c048986390c46c388a84eab2"
         )
         if next(iter(tracking_info)) != correct_hash:
             raise AssertionError
 
     def test_eltac(self: TestTracking) -> None:
-        tracking_info = track_eltac("WI640776981GR")
+        tracking_info = track_eltac("LA114239535GB")
         correct_hash = (
-            "174ba987ec21bae2d2302737820e1df3c6808415c98209024d8ca63379818bd7"
+            "6fb3264e2282e2e250e8c2193509a4d73ee0fdd9faf044b0fc378dcab5c00adb"
         )
         if next(iter(tracking_info)) != correct_hash:
             raise AssertionError
