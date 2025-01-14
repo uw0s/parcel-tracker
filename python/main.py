@@ -238,27 +238,6 @@ def track_skroutz(tracking_number: str) -> dict[str, dict[str, str]]:
     )
 
 
-def track_speedex(tracking_number: str) -> dict[str, dict[str, str]]:
-    url = (
-        f"http://www.speedex.gr/speedex/NewTrackAndTrace.aspx?number={tracking_number}"
-    )
-    response = session.get(url, timeout=TIMEOUT)
-    html_content = response.text
-    soup = BeautifulSoup(html_content, "html.parser")
-    tracking_data = soup.find_all("div", class_="card-header")
-    tracking_info = {}
-    for step in reversed(tracking_data):
-        tracking_message = step.find("h4").text.strip()
-        location_message, time_message = step.find("span").text.strip().split(", ")
-        unique_id = generate_unique_id(time_message, tracking_message)
-        tracking_info[unique_id] = {
-            "time": time_message,
-            "message": tracking_message,
-            "location": location_message,
-        }
-    return tracking_info
-
-
 def track_sunyou(tracking_number: str) -> dict[str, dict[str, str]]:
     url = f"https://www.sypost.net/queryTrack?trackNumber={tracking_number}&toLanguage=en_US"
     response = session.get(url, timeout=TIMEOUT)
@@ -355,14 +334,6 @@ class TestTracking(unittest.TestCase):
         if next(iter(tracking_info)) != correct_hash:
             raise AssertionError
 
-    def test_speedex(self: TestTracking) -> None:
-        tracking_info = track_speedex("700033415343")
-        correct_hash = (
-            "9565b1ecde3668df910430c3c2f1213103707d7725beb2f390badbe4cc826055"
-        )
-        if next(iter(tracking_info)) != correct_hash:
-            raise AssertionError
-
     def test_sunyou(self: TestTracking) -> None:
         tracking_info = track_sunyou("SYAE006809461")
         correct_hash = (
@@ -384,7 +355,6 @@ def parcel_tracker(tracking_number: str, shipping: str) -> dict[str, dict[str, s
         "geniki": track_geniki,
         "plaisio": track_plaisio,
         "skroutz": track_skroutz,
-        "speedex": track_speedex,
         "sunyou": track_sunyou,
     }
     track_func = tracking_functions.get(shipping)
