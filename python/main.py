@@ -255,9 +255,9 @@ def track_sunyou(tracking_number: str) -> dict[str, dict[str, str]]:
 
 class TestTracking(unittest.TestCase):
     def test_acs(self: TestTracking) -> None:
-        tracking_info = track_acs("3482598254")
+        tracking_info = track_acs("7635651181")
         correct_hash = (
-            "80636753554fcfe07f9bf943f61f93035d63514c0213d13d8a39740eb4ae75da"
+            "07cc0f470609e941c869d82c16bbeb4ecf07d7a4bfb7e1a450adcf23b1fc4523"
         )
         if next(iter(tracking_info)) != correct_hash:
             raise AssertionError
@@ -287,17 +287,17 @@ class TestTracking(unittest.TestCase):
             raise AssertionError
 
     def test_elta(self: TestTracking) -> None:
-        tracking_info = track_elta("LA114239535GB")
+        tracking_info = track_elta("UC055560296HU")
         correct_hash = (
-            "93962002d8413f7e9895b791252a84556beb13f2c048986390c46c388a84eab2"
+            "5fe4e67d92012d02fbceabea10d85e0119792444220ea299012447889cb6f292"
         )
         if next(iter(tracking_info)) != correct_hash:
             raise AssertionError
 
     def test_eltac(self: TestTracking) -> None:
-        tracking_info = track_eltac("LA114239535GB")
+        tracking_info = track_eltac("UC055560296HU")
         correct_hash = (
-            "6fb3264e2282e2e250e8c2193509a4d73ee0fdd9faf044b0fc378dcab5c00adb"
+            "0d6b4d78b0d28088f2b7052719c2d5417a141b8ad70287650659e8d5b872fd68"
         )
         if next(iter(tracking_info)) != correct_hash:
             raise AssertionError
