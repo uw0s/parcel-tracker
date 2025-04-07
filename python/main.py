@@ -263,9 +263,9 @@ class TestTracking(unittest.TestCase):
             raise AssertionError
 
     def test_boxnow(self: TestTracking) -> None:
-        tracking_info = track_boxnow("9232100105")
+        tracking_info = track_boxnow("9147361424")
         correct_hash = (
-            "4ed9fdf53544b92c720366646e8f5bd061c88c52dc5e3ad21fa223a6d4a6b4fb"
+            "3e1dad9b026041443c5fbbb7448abb20e6291b4955863886ed468552fcb0cd34"
         )
         if next(iter(tracking_info)) != correct_hash:
             raise AssertionError
@@ -311,9 +311,9 @@ class TestTracking(unittest.TestCase):
             raise AssertionError
 
     def test_geniki(self: TestTracking) -> None:
-        tracking_info = track_geniki("3951159041")
+        tracking_info = track_geniki("4998750606")
         correct_hash = (
-            "4efb2456419450175f91bf7a64d06057603819de869bd73617da3332cecaa676"
+            "2fb8e95219e1c241df09f23b2e735b23951d4a214538d3ad6019cebe058b2060"
         )
         if next(iter(tracking_info)) != correct_hash:
             raise AssertionError
