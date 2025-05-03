@@ -53,6 +53,9 @@ def track_acs(tracking_number: str) -> dict[str, dict[str, str]]:
     base_response = session.get(base_url, timeout=TIMEOUT)
     soup = BeautifulSoup(base_response.text, "html.parser")
     app_root = soup.find(id="app-root")
+    if app_root is None or not hasattr(app_root, "get"):
+        msg = "Could not find app-root element"
+        raise ValueError(msg)
     public_token = app_root.get("publictoken")
     url = f"https://api.acscourier.net/api/parcels/search/{tracking_number}"
     headers = {
@@ -97,6 +100,9 @@ def track_easymail(tracking_number: str) -> dict[str, dict[str, str]]:
     html_content = response.text
     soup = BeautifulSoup(html_content, "html.parser")
     table_element = soup.find("div", class_="col mobiRemoveMargin")
+    if table_element is None or not hasattr(table_element, "find"):
+        msg = "Could not find table element"
+        raise ValueError(msg)
     tbody_element = table_element.find("tbody")
     tracking_data = tbody_element.find_all("tr")
     tracking_info = {}
@@ -158,10 +164,22 @@ def track_eshop(tracking_number: str) -> dict[str, dict[str, str]]:
             "padding:3px 0 5px 0;"
         ),
     )
-    table_element = td_element.parent.parent
+    if td_element is None or not hasattr(td_element, "parent"):
+        msg = "Could not find td element"
+        raise ValueError(msg)
+    tr_element = td_element.parent
+    if tr_element is None or not hasattr(tr_element, "parent"):
+        msg = "Could not find tr element"
+        raise ValueError(msg)
+    table_element = tr_element.parent
+    if table_element is None or not hasattr(table_element, "parent"):
+        msg = "Could not find table element"
+        raise ValueError(msg)
     tracking_data = table_element.find_all("tr")
     tracking_info = {}
     for step in reversed(tracking_data):
+        if step is None or not hasattr(step, "find_all"):
+            continue
         columns = step.find_all("td")
         status_icon = columns[0].find("img")
         if status_icon and "check_ok.png" in status_icon["src"]:
@@ -183,6 +201,8 @@ def track_geniki(tracking_number: str) -> dict[str, dict[str, str]]:
     tracking_data = soup.find_all("div", class_="tracking-checkpoint")
     tracking_info = {}
     for step in reversed(tracking_data):
+        if step is None or not hasattr(step, "find"):
+            continue
         tracking_message = (
             step.find("div", class_="checkpoint-status")
             .text.replace("Status", "")
