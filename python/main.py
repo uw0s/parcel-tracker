@@ -291,9 +291,9 @@ class TestTracking(unittest.TestCase):
             raise AssertionError
 
     def test_cainiao(self: TestTracking) -> None:
-        tracking_info = track_cainiao("7605228735")
+        tracking_info = track_cainiao("7639654956")
         correct_hash = (
-            "75833d19fcadaf33ae5584efcf80d1846c178fc8633e672c78fcff9743c80968"
+            "44498bc44a1585ec3fab85e4aa1943defe5075f3a340c1f0b5430f51e9049151"
         )
         if next(iter(tracking_info)) != correct_hash:
             raise AssertionError
