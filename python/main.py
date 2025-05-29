@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import secrets
+import time
 import unittest
 
 import requests
@@ -259,7 +261,10 @@ def track_skroutz(tracking_number: str) -> dict[str, dict[str, str]]:
 
 
 def track_sunyou(tracking_number: str) -> dict[str, dict[str, str]]:
-    url = f"https://www.sypost.net/queryTrack?trackNumber={tracking_number}&toLanguage=en_US"
+    ts_ms = int(time.time() * 1000)
+    ts_suffix = secrets.randbelow(90000) + 10000
+    query_time = f"{ts_ms}-{ts_suffix}"
+    url = f"https://www.sypost.net/queryTrack?queryTime={query_time}&trackNumber={tracking_number}&toLanguage=en_US"
     response = session.get(url, timeout=TIMEOUT)
     jsonp_content = response.text
     start_index = jsonp_content.index("(") + 1
@@ -357,7 +362,7 @@ class TestTracking(unittest.TestCase):
     def test_sunyou(self: TestTracking) -> None:
         tracking_info = track_sunyou("SYAE006809461")
         correct_hash = (
-            "60060cef334d81243bb1981b9c5e02f638e490072d068762541775f0d0e5f2d9"
+            "b72ed3e7a3a9ce4795f9f508c7f6a122f491cdcad2081c5e53e79d48db6cf172"
         )
         if next(iter(tracking_info)) != correct_hash:
             raise AssertionError
