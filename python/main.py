@@ -232,15 +232,10 @@ def track_geniki(tracking_number: str) -> dict[str, dict[str, str]]:
 
 def track_plaisio(tracking_number: str) -> dict[str, dict[str, str]]:
     url = "https://www.plaisio.gr/mercury/plaisio/ordertracking/getordertracking"
-    headers = {
-        "User-Agent": (
-            "Mozilla/5.0 (X11; Linux x86_64; rv:131.0) Gecko/20100101 Firefox/131.0"
-        ),
-    }
     json_data = {
         "TrackingNumber": tracking_number,
     }
-    response = session.post(url, headers=headers, json=json_data, timeout=TIMEOUT)
+    response = session.post(url, json=json_data, timeout=TIMEOUT)
     tracking_data = response.json()["orderHistory"]
     return parse_tracking_data(
         tracking_data,
@@ -256,7 +251,7 @@ def track_skroutz(tracking_number: str) -> dict[str, dict[str, str]]:
     return parse_tracking_data(
         tracking_data,
         {"time": "updatedAt", "message": "description"},
-        reverse_order=False,
+        reverse_order=True,
     )
 
 
@@ -274,7 +269,7 @@ def track_sunyou(tracking_number: str) -> dict[str, dict[str, str]]:
     return parse_tracking_data(
         tracking_data,
         {"time": "createTime", "message": "content"},
-        reverse_order=False,
+        reverse_order=True,
     )
 
 
@@ -312,17 +307,17 @@ class TestTracking(unittest.TestCase):
             raise AssertionError
 
     def test_elta(self: TestTracking) -> None:
-        tracking_info = track_elta("UC055560296HU")
+        tracking_info = track_elta("UN005597863US")
         correct_hash = (
-            "5fe4e67d92012d02fbceabea10d85e0119792444220ea299012447889cb6f292"
+            "e57f6e3efa7c60d3f3574c4cc14146ce2ecb4f1bdbc87ee292caa165e543f4cd"
         )
         if next(iter(tracking_info)) != correct_hash:
             raise AssertionError
 
     def test_eltac(self: TestTracking) -> None:
-        tracking_info = track_eltac("UC055560296HU")
+        tracking_info = track_eltac("UN005597863US")
         correct_hash = (
-            "0d6b4d78b0d28088f2b7052719c2d5417a141b8ad70287650659e8d5b872fd68"
+            "2e708a6607f57a0023618c5e5f31e696e9e1451bbb78075c505c80796265bec6"
         )
         if next(iter(tracking_info)) != correct_hash:
             raise AssertionError
@@ -354,7 +349,7 @@ class TestTracking(unittest.TestCase):
     def test_skroutz(self: TestTracking) -> None:
         tracking_info = track_skroutz("JLD6ZN7P8YD4W")
         correct_hash = (
-            "47cd388c51186d7aac4803ab6e8818d9adbaca7a90d541fa53e09a69672ee767"
+            "3115da3bdaa01a354a040e41627f833e80eff82d5ac0d83a756e08d5730e12b5"
         )
         if next(iter(tracking_info)) != correct_hash:
             raise AssertionError
@@ -362,7 +357,7 @@ class TestTracking(unittest.TestCase):
     def test_sunyou(self: TestTracking) -> None:
         tracking_info = track_sunyou("SYAE006809461")
         correct_hash = (
-            "b72ed3e7a3a9ce4795f9f508c7f6a122f491cdcad2081c5e53e79d48db6cf172"
+            "42ca9222219795b01e3077f804bfa016a093799a7e7e78875710188e19125543"
         )
         if next(iter(tracking_info)) != correct_hash:
             raise AssertionError
