@@ -232,10 +232,15 @@ def track_geniki(tracking_number: str) -> dict[str, dict[str, str]]:
 
 def track_plaisio(tracking_number: str) -> dict[str, dict[str, str]]:
     url = "https://www.plaisio.gr/mercury/plaisio/ordertracking/getordertracking"
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (X11; Linux x86_64; rv:139.0) Gecko/20100101 Firefox/139.0"
+        ),
+    }
     json_data = {
         "TrackingNumber": tracking_number,
     }
-    response = session.post(url, json=json_data, timeout=TIMEOUT)
+    response = session.post(url, headers=headers, json=json_data, timeout=TIMEOUT)
     tracking_data = response.json()["orderHistory"]
     return parse_tracking_data(
         tracking_data,
