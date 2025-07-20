@@ -6,6 +6,7 @@ import secrets
 import time
 import unittest
 
+import fire
 import requests
 from bs4 import BeautifulSoup
 
@@ -93,6 +94,30 @@ def track_cainiao(tracking_number: str) -> dict[str, dict[str, str]]:
         tracking_data,
         {"time": "timeStr", "message": "desc", "location": "standerdDesc"},
         reverse_order=False,
+    )
+
+
+def track_diakinisis(tracking_number: str) -> dict[str, dict[str, str]]:
+    url = "https://pod.diakinisis.gr/server_handler_ext.php"
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+    }
+    data = (
+        "cmd=srvcmd_ext_tnt&"
+        "action=srvaction_getrecordstatus&"
+        f"trackingId={tracking_number}&"
+        "agreementId=0"
+    )
+    response = session.post(url, headers=headers, data=data, verify=False)
+    tracking_data = response.json()[2]["history"]
+    tracking_data = combine_date_time(tracking_data, "action_date", "action_time")
+    return parse_tracking_data(
+        tracking_data,
+        {
+            "time": "combined_time",
+            "message": "action",
+        },
+        reverse_order=True,
     )
 
 
@@ -280,9 +305,9 @@ def track_sunyou(tracking_number: str) -> dict[str, dict[str, str]]:
 
 class TestTracking(unittest.TestCase):
     def test_acs(self: TestTracking) -> None:
-        tracking_info = track_acs("7635651181")
+        tracking_info = track_acs("7644470735")
         correct_hash = (
-            "07cc0f470609e941c869d82c16bbeb4ecf07d7a4bfb7e1a450adcf23b1fc4523"
+            "59fee6a692dfe0f282ec4e9db77cb56da756b0e3e41623ca0201aae6422ed8f2"
         )
         if next(iter(tracking_info)) != correct_hash:
             raise AssertionError
@@ -299,6 +324,14 @@ class TestTracking(unittest.TestCase):
         tracking_info = track_cainiao("7639654956")
         correct_hash = (
             "44498bc44a1585ec3fab85e4aa1943defe5075f3a340c1f0b5430f51e9049151"
+        )
+        if next(iter(tracking_info)) != correct_hash:
+            raise AssertionError
+
+    def test_diakinisis(self: TestTracking) -> None:
+        tracking_info = track_diakinisis("13664278179")
+        correct_hash = (
+            "2aefa0008cacee4a7847efb7fc63fc3f1c1537d4f45ed3eb24c43ce91d0897ae"
         )
         if next(iter(tracking_info)) != correct_hash:
             raise AssertionError
@@ -373,6 +406,7 @@ def parcel_tracker(tracking_number: str, shipping: str) -> dict[str, dict[str, s
         "acs": track_acs,
         "boxnow": track_boxnow,
         "cainiao": track_cainiao,
+        "diakinisis": track_diakinisis,
         "easymail": track_easymail,
         "elta": track_elta,
         "eltac": track_eltac,
@@ -390,8 +424,6 @@ def parcel_tracker(tracking_number: str, shipping: str) -> dict[str, dict[str, s
 
 
 def main() -> None:
-    import fire
-
     fire.Fire(parcel_tracker)
 
 
