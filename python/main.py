@@ -313,9 +313,9 @@ class TestTracking(unittest.TestCase):
             raise AssertionError
 
     def test_boxnow(self: TestTracking) -> None:
-        tracking_info = track_boxnow("9147361424")
+        tracking_info = track_boxnow("6324680472")
         correct_hash = (
-            "3e1dad9b026041443c5fbbb7448abb20e6291b4955863886ed468552fcb0cd34"
+            "5568ce4681b548530cf13120cbf9ca285cc3f1290bac98c2e0b071a4243d261f"
         )
         if next(iter(tracking_info)) != correct_hash:
             raise AssertionError
