@@ -260,25 +260,6 @@ def track_geniki(tracking_number: str) -> dict[str, dict[str, str]]:
     return tracking_info
 
 
-def track_plaisio(tracking_number: str) -> dict[str, dict[str, str]]:
-    url = "https://www.plaisio.gr/mercury/plaisio/ordertracking/getordertracking"
-    headers = {
-        "User-Agent": (
-            "Mozilla/5.0 (X11; Linux x86_64; rv:139.0) Gecko/20100101 Firefox/139.0"
-        ),
-    }
-    json_data = {
-        "TrackingNumber": tracking_number,
-    }
-    response = session.post(url, headers=headers, json=json_data, timeout=TIMEOUT)
-    tracking_data = response.json()["orderHistory"]
-    return parse_tracking_data(
-        tracking_data,
-        {"time": "transactionDate", "message": "statusDescription"},
-        reverse_order=True,
-    )
-
-
 def track_skroutz(tracking_number: str) -> dict[str, dict[str, str]]:
     url = f"https://api.sendx.gr/user/hp/{tracking_number}"
     response = session.get(url, timeout=TIMEOUT)
@@ -381,14 +362,6 @@ class TestTracking(unittest.TestCase):
         if next(iter(tracking_info)) != correct_hash:
             raise AssertionError
 
-    def test_plaisio(self: TestTracking) -> None:
-        tracking_info = track_plaisio("5125957")
-        correct_hash = (
-            "779c9b4b1ee8f7d086f2c7f1005467a6f483afd1af64a2b1e88bd845f3370079"
-        )
-        if next(iter(tracking_info)) != correct_hash:
-            raise AssertionError
-
     def test_skroutz(self: TestTracking) -> None:
         tracking_info = track_skroutz("JLD6ZN7P8YD4W")
         correct_hash = (
@@ -417,7 +390,6 @@ def parcel_tracker(tracking_number: str, shipping: str) -> dict[str, dict[str, s
         "eltac": track_eltac,
         "eshop": track_eshop,
         "geniki": track_geniki,
-        "plaisio": track_plaisio,
         "skroutz": track_skroutz,
         "sunyou": track_sunyou,
     }
