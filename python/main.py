@@ -60,6 +60,11 @@ def track_acs(tracking_number: str) -> dict[str, dict[str, str]]:
         msg = "Could not find app-root element"
         raise ValueError(msg)
     public_token = app_root.get("publictoken")
+    if isinstance(public_token, list):
+        public_token = public_token[0]
+    if public_token is None:
+        msg = "Could not find public token"
+        raise ValueError(msg)
     url = f"https://api.acscourier.net/api/parcels/search/{tracking_number}"
     headers = {
         "X-Encrypted-Key": public_token,
@@ -131,6 +136,9 @@ def track_easymail(tracking_number: str) -> dict[str, dict[str, str]]:
         msg = "Could not find table element"
         raise ValueError(msg)
     tbody_element = table_element.find("tbody")
+    if tbody_element is None:
+        msg = "Could not find tbody element"
+        raise ValueError(msg)
     tracking_data = tbody_element.find_all("tr")
     tracking_info = {}
     for step in tracking_data:
@@ -230,21 +238,18 @@ def track_geniki(tracking_number: str) -> dict[str, dict[str, str]]:
     for step in reversed(tracking_data):
         if step is None or not hasattr(step, "find"):
             continue
+        status_div = step.find("div", class_="checkpoint-status")
         tracking_message = (
-            step.find("div", class_="checkpoint-status")
-            .text.replace("Status", "")
-            .strip()
+            status_div.text.replace("Status", "").strip() if status_div else "N/A"
         )
         location_div = step.find("div", class_="checkpoint-location")
         location_message = (
             location_div.text.replace("Location", "").strip() if location_div else "N/A"
         )
-        date = (
-            step.find("div", class_="checkpoint-date").text.replace("Date", "").strip()
-        )
-        time = (
-            step.find("div", class_="checkpoint-time").text.replace("Time", "").strip()
-        )
+        date_div = step.find("div", class_="checkpoint-date")
+        date = date_div.text.replace("Date", "").strip() if date_div else ""
+        time_div = step.find("div", class_="checkpoint-time")
+        time = time_div.text.replace("Time", "").strip() if time_div else ""
         time_message = f"{date} {time}"
         unique_id = generate_unique_id(time_message, tracking_message)
         tracking_info[unique_id] = {
@@ -369,9 +374,9 @@ class TestTracking(unittest.TestCase):
             raise AssertionError
 
     def test_geniki(self: TestTracking) -> None:
-        tracking_info = track_geniki("4998750606")
+        tracking_info = track_geniki("5066866674")
         correct_hash = (
-            "2fb8e95219e1c241df09f23b2e735b23951d4a214538d3ad6019cebe058b2060"
+            "13f10274c8be6a8b459b1e4c4bfdaa89e210053a49a8bc4ecbe0c3b87deba7c9"
         )
         if next(iter(tracking_info)) != correct_hash:
             raise AssertionError
