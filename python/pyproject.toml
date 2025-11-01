@@ -9,10 +9,10 @@ version = "0.0.0"
 
 [project.optional-dependencies]
 dev = [
-  "coverage==7.10.7",
+  "coverage==7.11.0",
   "djlint==1.36.4",
   "mypy==1.18.2",
-  "ruff==0.13.2",
+  "ruff==0.14.3",
   "ssort==0.15.0",
   "toml-sort==0.24.3"
 ]
